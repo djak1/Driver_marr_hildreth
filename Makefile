@@ -6,7 +6,7 @@ ifneq ($(KERNELRELEASE),)
 # line; invoke the kernel build system.
 else
 # Ako KERNELDIR nije definisan postavi ga na ovu vrednost
-KERNELDIR ?= /lib/modules/build
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 # Podesi promenljivu PWD na vrednost trenutnog direktorijuma
 PWD := $(shell pwd)
 
