@@ -166,15 +166,14 @@ static int laplas_remove(struct platform_device *pdev)
 //***********************************************
 // OPEN & CLOSE 
 //***********************************************
-
 static int laplas_open(struct inode *i, struct file *f)
 {
-	
+	printk(KERN_INFO "Succesfully opened file\n");	
 	return 0;
 }	
-
 static int laplas_close(struct inode *i, struct file *f)
 {
+	printk(KERN_INFO "Succesfully closed file\n");
 	return 0;
 }
 
@@ -182,27 +181,26 @@ static int laplas_close(struct inode *i, struct file *f)
 //***************************************************
 // READ & WRITE
 //***************************************************
-
-
 ssize_t laplas_read(struct file *pfile, char __user *buffer, size_t length, loff_t *offset)
 {
 	char buff[BUFF_SIZE];
 	long int len = 0;
 	
 	int val;
-	if (end_read == 1)
-	{
-		end_read = 0;
-		return 0;
-	}
-
-	copy_to_user(buffer, buff, len);
+	int addr;
 	
+	for (int i = 0; i < 256; i ++)
+	{
+		val = ioread32(laplas->base_addr + BRAM3 + i);
+		if (val == 255)
+		{
+			addr =	scnprintf(buff, BUFF_SIZE, "%d\n",BRAM3 + i);
+			copy_to_user(buffer, buff, addr);
+		}
+	}	
 	return 0;
 };
 
-
-////*******WRITEEE
 
 ssize_t laplas_write(struct file *pfile, const char __user *buffer, size_t length, loff_t *offset) 
 {
@@ -227,7 +225,7 @@ ssize_t laplas_write(struct file *pfile, const char __user *buffer, size_t lengt
 
 	sscanf(buff, "%d", &val1);
 	//trebalo bi da upise sliku
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < 100; i++)
 	{
 		iowrite32(val1, laplas->base_addr + BRAM1 + i);
 	}
@@ -257,8 +255,6 @@ ssize_t laplas_write(struct file *pfile, const char __user *buffer, size_t lengt
 //***************************************************
 // INIT & EXIT
 //***************************************************
-
-
 static int __init laplas_init(void)
 {
 	int ret = 0;
@@ -311,9 +307,6 @@ static int __init laplas_init(void)
 	  return -1;
 }
 
-
-
-
 static void __exit laplas_exit(void)
 {
   printk(KERN_INFO "laplas driver starting rmmod.\n");
@@ -329,5 +322,6 @@ static void __exit laplas_exit(void)
   unregister_chrdev_region(my_dev_id,1);
   printk(KERN_INFO "laplas driver exited.\n");
 }
+
 module_init(laplas_init);
 module_exit(laplas_exit);
